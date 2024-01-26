@@ -1,0 +1,440 @@
+/*
+Denkovi Module Parent Application for Hubitat Elevation
+24VAC Power \ Denkovi smartDEN Modules
+Recommended to use with PoE Injector \ Power Loss Results to all off \ closed
+*/
+
+
+metadata {
+    definition (name: "Denkovi smartDEN Module", namespace: "denkovismartden", author: "Corey Cleric") {
+        capability "Configuration"
+        
+        command "switchAllOff"
+        command "childSwitch1On"
+        command "childSwitch1Off"
+        command "childSwitch2On"
+        command "childSwitch2Off"
+        command "childSwitch3On"
+        command "childSwitch3Off"
+        command "childSwitch4On"
+        command "childSwitch4Off"
+        command "childSwitch5On"
+        command "childSwitch5Off"
+        command "childSwitch6On"
+        command "childSwitch6Off"
+        command "childSwitch7On"
+        command "childSwitch7Off"
+        command "childSwitch8On"
+        command "childSwitch8Off"
+        command "rebuildChildDevices"
+        command "refresh"
+              
+    }
+    preferences {
+        input name: "denkovi_model", type: "text", title: "Denkovi Model", defaultValue: "smartDen IP-Maxi Module", required: false
+        input name: "polltimer", type: "text", title: "Polling Time", defaultValue: "30", required: false
+        input name: "denkovi_password", type: "text", title: "Denkovi Password", defaultValue: "admin", required: false
+        input name: "internal_ip", type: "text", title: "Internal IP", defaultValue: "192.168.1.100", required: false
+        input name: "internal_port", type: "text", title: "Internal Port", defaultValue: "80", required: false
+        input name: "switchtype1", type: "text", title: "Relay1 Type: switch or valve or momentary", defaultValue: "switch", required: true
+        input name: "switchtype2", type: "text", title: "Relay2 Type: switch or valve or momentary", defaultValue: "switch", required: true
+        input name: "switchtype3", type: "text", title: "Relay3 Type: switch or valve or momentary", defaultValue: "switch", required: true
+        input name: "switchtype4", type: "text", title: "Relay4 Type: switch or valve or momentary", defaultValue: "switch", required: true
+        input name: "switchtype5", type: "text", title: "Relay5 Type: switch or valve or momentary", defaultValue: "switch", required: true
+        input name: "switchtype6", type: "text", title: "Relay6 Type: switch or valve or momentary", defaultValue: "switch", required: true
+        input name: "switchtype7", type: "text", title: "Relay7 Type: switch or valve or momentary", defaultValue: "switch", required: true
+        input name: "switchtype8", type: "text", title: "Relay8 Type: switch or valve or momentary", defaultValue: "switch", required: true
+        input name: "logEnable", type: "bool", title: "Enable debug logging", defaultValue: false
+
+    }
+}
+
+void parse(String description) {
+    // your parser.
+}
+
+def refresh() {
+    log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} updated..."
+	initialize()
+    }
+
+def logsOff(){
+    log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} debug logging disabled..."
+    device.updateSetting("logEnable",[value:"false",type:"bool"])
+}
+
+def updated(){
+    log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Updated..."
+    log.warn "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} debug logging is: ${logEnable == true}"
+    log.warn "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} description logging is: ${txtEnable == true}"
+    if (logEnable) runIn(1800,logsOff)
+    initialize()
+}
+
+def childSwitch1On() { state.Relay1 = "on"; childSwitchOn(switch1name,1,switch1type) }
+def childSwitch2On() { state.Relay2 = "on"; childSwitchOn(switch2name,2,switch2type) }
+def childSwitch3On() { state.Relay3 = "on"; childSwitchOn(switch3name,3,switch3type) }
+def childSwitch4On() { state.Relay4 = "on"; childSwitchOn(switch4name,4,switch4type) }
+def childSwitch5On() { state.Relay5 = "on"; childSwitchOn(switch5name,5,switch5type) }
+def childSwitch6On() { state.Relay6 = "on"; childSwitchOn(switch6name,6,switch6type) }
+def childSwitch7On() { state.Relay7 = "on"; childSwitchOn(switch7name,7,switch7type) }
+def childSwitch8On() { state.Relay8 = "on"; childSwitchOn(switch8name,8,switch8type) }
+    
+def childSwitch1Off() { state.Relay1 = "off"; childSwitchOff(switch1name,1,switch1type) }
+def childSwitch2Off() { state.Relay2 = "off"; childSwitchOff(switch2name,2,switch2type) }
+def childSwitch3Off() { state.Relay3 = "off"; childSwitchOff(switch3name,3,switch3type) }
+def childSwitch4Off() { state.Relay4 = "off"; childSwitchOff(switch4name,4,switch4type) }
+def childSwitch5Off() { state.Relay5 = "off"; childSwitchOff(switch5name,5,switch5type) }
+def childSwitch6Off() { state.Relay6 = "off"; childSwitchOff(switch6name,6,switch6type) }
+def childSwitch7Off() { state.Relay7 = "off"; childSwitchOff(switch7name,7,switch7type) }
+def childSwitch8Off() { state.Relay8 = "off"; childSwitchOff(switch8name,8,switch8type) }
+
+
+def rebuildChildDevices() {
+/*    
+    //For Each Check existing child - compare names and types - if changed delete and re-install
+    removeChildDevices(getChildDevices())
+    for (int myindex = 1; myindex <= 8; myindex++) {
+       setupControlSwitchChild("Relay${myindex}",switchtype${myindex})
+       }
+*/
+    if ( state.relayports > 0 ) {
+      if (switchtype1 != state.oldswitchtype1) { removeChildDevice(1); setupControlSwitchChild(1,switchtype1); state.oldswitchtype1 = switchtype1 }
+      if (switchtype2 != state.oldswitchtype2) { removeChildDevice(2); setupControlSwitchChild(2,switchtype2); state.oldswitchtype2 = switchtype2 }
+      if (switchtype3 != state.oldswitchtype3) { removeChildDevice(3); setupControlSwitchChild(3,switchtype3); state.oldswitchtype3 = switchtype3 }
+      if (switchtype4 != state.oldswitchtype4) { removeChildDevice(4); setupControlSwitchChild(4,switchtype4); state.oldswitchtype4 = switchtype4 }
+      if (switchtype5 != state.oldswitchtype5) { removeChildDevice(5); setupControlSwitchChild(5,switchtype5); state.oldswitchtype5 = switchtype5 }
+      if (switchtype6 != state.oldswitchtype6) { removeChildDevice(6); setupControlSwitchChild(6,switchtype6); state.oldswitchtype6 = switchtype6 }
+      if (switchtype7 != state.oldswitchtype7) { removeChildDevice(7); setupControlSwitchChild(7,switchtype7); state.oldswitchtype7 = switchtype7 }
+      if (switchtype8 != state.oldswitchtype8) { removeChildDevice(8); setupControlSwitchChild(8,switchtype8); state.oldswitchtype8 = switchtype8 }
+    }
+}
+
+def switchAllOff() {
+    try {
+        log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Turning off all controlSwitch Devices" 
+    	def result = new hubitat.device.HubAction(method: "GET", path: "/current_state.xml?pw=${denkovi_password}&Relay1=0&Relay2=0&Relay3=0&Relay4=0&Relay5=0&Relay6=0&Relay7=0&Relay8=0", headers: [HOST: "${internal_ip}:${internal_port}"])
+        //log.debug "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Result={$result}" 
+    	sendHubCommand(result)
+        }
+    catch (e) {	log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Hit Exception ${e} ${result}"	}
+}
+
+
+def childSwitchOn(sindex,stype){
+    String myChildDevice = "${device.id}-Relay${sindex}"
+    log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Turn Device ${myChildDevice} on"
+     try {
+         def result = new hubitat.device.HubAction(method: "GET", path: "/current_state.xml?pw=${denkovi_password}&Relay${sindex}=1", headers: [HOST: "${internal_ip}:${internal_port}"])
+        if (logEnable) log.debug "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Result={$result}" 
+    	sendHubCommand(result)
+        }
+    catch (e) {	log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Hit Exception ${e} ${result}"	}
+    def child = getChildDevice(myChildDevice)
+    switch (stype) {
+        case "switch":
+            child.sendEvent(name: "switch", value: "on")
+            break
+        case "momentary":
+            child.sendEvent(name: "switch", value: "on")
+            break
+        case "valve":
+            child.sendEvent(name: "valve", value: "open")
+            break
+        }
+}
+
+def childSwitchOff(sindex,stype){
+    String myChildDevice = "${device.id}-Relay${sindex}"
+    log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Turn Device ${myChildDevice} off"
+     try {
+        def result = new hubitat.device.HubAction(method: "GET", path: "/current_state.xml?pw=${denkovi_password}&Relay${sindex}=0", headers: [HOST: "${internal_ip}:${internal_port}"])
+        if (logEnable) log.debug "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Result={$result}" 
+    	sendHubCommand(result)
+        }
+    catch (e) {	log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Hit Exception ${e} ${result}"	}
+    def child = getChildDevice(myChildDevice)
+    switch (stype) {
+        case "switch":
+            child.sendEvent(name: "switch", value: "off")
+            break
+        case "momentary":
+            child.sendEvent(name: "switch", value: "on")
+            break
+        case "valve":
+            child.sendEvent(name: "valve", value: "closed")
+            break
+        }
+
+}
+                     
+    
+def setupControlSwitchChildren() {
+  if (state.relayports > 0) {
+    setupControlSwitchChild(1,switchtype1)
+    setupControlSwitchChild(2,switchtype2)
+    setupControlSwitchChild(3,switchtype3)
+    setupControlSwitchChild(4,switchtype4)
+    setupControlSwitchChild(5,switchtype5)
+    setupControlSwitchChild(6,switchtype6)
+    setupControlSwitchChild(7,switchtype7)
+    setupControlSwitchChild(8,switchtype8)
+    state.oldswitchtype1 = switchtype1
+    state.oldswitchtype2 = switchtype2
+    state.oldswitchtype3 = switchtype3
+    state.oldswitchtype4 = switchtype4
+    state.oldswitchtype5 = switchtype5
+    state.oldswitchtype6 = switchtype6
+    state.oldswitchtype7 = switchtype7
+    state.oldswitchtype8 = switchtype8
+    }
+    if (logEnable) log.debug  "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} ${state.digitalports}"
+    for (int myindex = 1; myindex <= state.digitalports; myindex++) {
+        setupContactChild("DigitalInput${myindex}")     
+        }
+    
+    }
+
+
+def setupContactChild (pname) {
+    String myChildDevice = "${device.id}-${pname.replaceAll("\\s","")}"
+    if (logEnable) log.debug "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} ${myChildDevice}"
+    def child = getChildDevice(myChildDevice)
+    if (!child) { 
+       addChildDevice("denkovismartden", "Denkovi Contact Device", "${myChildDevice}", [name: "${pname}", isComponent: true])
+       child = getChildDevice(myChildDevice)
+       child.sendEvent(name: "contact", value: "closed")
+       return 1
+       }
+    return 0
+}
+
+
+
+def setupControlSwitchChild(sindex,stype) {
+    String myChildDevice = "${device.id}-Relay${sindex}"
+    if (logEnable) log.debug "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Device = ${myChildDevice}"
+    def child = getChildDevice(myChildDevice)
+    if (!child) { 
+        switch (stype) {
+            case "switch":
+                addChildDevice("denkovismartden", "Denkovi Switch Device", "${myChildDevice}", [name: "Relay${sindex}", isComponent: true])
+                child = getChildDevice(myChildDevice)
+                child.sendEvent(name: "switch", value: "off")
+                break
+            case "momentary":
+                addChildDevice("denkovismartden", "Denkovi Momentary Device", "${myChildDevice}", [name: "Relay${sindex}", isComponent: true])
+                child = getChildDevice(myChildDevice)
+                child.sendEvent(name: "switch", value: "off")
+                break
+            case "valve":
+                addChildDevice("denkovismartden", "Denkovi Valve Device", "${myChildDevice}", [name: "Relay${sindex}", isComponent: true])
+                child = getChildDevice(myChildDevice)
+                child.sendEvent(name: "valve", value: "closed")
+                break
+
+            }
+        }
+}
+
+def componentRefresh(child){
+    if (logEnable) log.debug "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} received refresh request from ${child.displayName}"
+}
+
+def componentOn(child){
+    getChildDevice(child.deviceNetworkId).parse([[name:"switch", value:"on", descriptionText:"${child.displayName} was turned on"]])
+    if (child.deviceNetworkId == "${device.id}-Relay1") { state.switch1 = "on"; childSwitchOn(1,switchtype1) }
+    if (child.deviceNetworkId == "${device.id}-Relay2") { state.switch2 = "on"; childSwitchOn(2,switchtype2) }
+    if (child.deviceNetworkId == "${device.id}-Relay3") { state.switch3 = "on"; childSwitchOn(3,switchtype3) }
+    if (child.deviceNetworkId == "${device.id}-Relay4") { state.switch4 = "on"; childSwitchOn(4,switchtype4) }
+    if (child.deviceNetworkId == "${device.id}-Relay5") { state.switch5 = "on"; childSwitchOn(5,switchtype5) }
+    if (child.deviceNetworkId == "${device.id}-Relay6") { state.switch6 = "on"; childSwitchOn(6,switchtype6) }
+    if (child.deviceNetworkId == "${device.id}-Relay7") { state.switch7 = "on"; childSwitchOn(7,switchtype7) }
+    if (child.deviceNetworkId == "${device.id}-Relay8") { state.switch8 = "on"; childSwitchOn(8,switchtype8) }
+  }
+
+def componentOff(child){
+    getChildDevice(child.deviceNetworkId).parse([[name:"switch", value:"off", descriptionText:"${child.displayName} was turned off"]])
+    if (child.deviceNetworkId == "${device.id}-Relay1") { state.switch1 = "off"; childSwitchOff(1,switchtype1) }
+    if (child.deviceNetworkId == "${device.id}-Relay2") { state.switch2 = "off"; childSwitchOff(2,switchtype2) }
+    if (child.deviceNetworkId == "${device.id}-Relay3") { state.switch3 = "off"; childSwitchOff(3,switchtype3) }
+    if (child.deviceNetworkId == "${device.id}-Relay4") { state.switch4 = "off"; childSwitchOff(4,switchtype4) }
+    if (child.deviceNetworkId == "${device.id}-Relay5") { state.switch5 = "off"; childSwitchOff(5,switchtype5) }
+    if (child.deviceNetworkId == "${device.id}-Relay6") { state.switch6 = "off"; childSwitchOff(6,switchtype6) }
+    if (child.deviceNetworkId == "${device.id}-Relay7") { state.switch7 = "off"; childSwitchOff(7,switchtype7) }
+    if (child.deviceNetworkId == "${device.id}-Relay8") { state.switch8 = "off"; childSwitchOff(8,switchtype8) }
+}
+
+def pollDenkoviModule() {
+    log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} pollDenkoviModule..."
+    try {
+        def result = new hubitat.device.HubAction([method: "GET", path: "/current_state.xml?pw=${denkovi_password}",headers: [HOST: "${internal_ip}:${internal_port}",]],null,[callback: parseResponse])
+        sendHubCommand(result)
+        //log.debug "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Result={$result}" 
+        }
+    catch (e) {	log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Hit Exception ${e} ${result}" }
+
+}
+                                                                                                
+def parseResponse(resp) {
+    //log.debug "Updated with resp: ${resp.toString()}"
+    //log.debug "Updated with resp.body: ${resp.body.toString()}"
+
+    if (resp.body.toString().contains('304 Redirect')) { 
+        log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Cannot read web page - must be opened on a browser"
+        return
+    }
+    
+    def payload = new XmlSlurper().parseText(resp.body)
+    int myuptime = getLocation().getHub().uptime
+    
+    // Parse Denkovi Product Name
+    
+    denkoviproductname = payload.Device.Name.text()
+    denkoviproductmac = payload.Device.MAC.text()
+    //log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} denkoviproductname ${denkoviproductname} denkoviproductmac ${denkoviproductmac}"
+    if ( denkoviproductname == "SMARTDEN_IPMAXI" ) {state.digitalports = 8; state.relayports = 8; state.analogports = 8 }
+    if ( denkoviproductname == "SMARTDEN_NOTIFY" ) {state.digitalports = 16; state.relayports = 0; state.analogports = 8 }
+    if ( denkoviproductname != denkovi_model ) { state.denkovi_model = denkoviproductname; setupControlSwitchChildren() }
+    log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} found productname ${denkoviproductname}, productmac ${denkoviproductmac}, relayports ${state.relayports}, digitalports ${state.digitalports}, analogports ${state.analogports}"
+             
+        
+        
+   
+    // Parse Relays
+    
+    if ( state.relayports > 0 ) {
+    for (int myindex = 1; myindex <= state.relayports; myindex++) {
+        mynewname = payload."Relay${myindex}".Name.text()
+        mynewvalue = syncOnOff((payload."Relay${myindex}".Value.text()))
+        if (mynewname != state."RelayName${myindex}") { 
+            log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} mynewname ${mynewname} is not state.RelayName${myindex} ${state."RelayName${myindex}"}, syncing...."
+            state."RelayName${myindex}" = mynewname
+        }
+        if (mynewvalue != state."Relay${myindex}") { 
+            log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} mynewvalue ${mynewvalue} is not state.Relay${myindex} ${state."Relay${myindex}"}, syncing...."
+            state."Relay${myindex}" = mynewvalue 
+           }         
+    } }      
+    
+    // Parse Digital Inputs
+    
+        
+    if ( state.digitalports > 0 ) {    
+    for (int myindex = 1; myindex <= state.digitalports; myindex++) {
+        mynewname = payload."DigitalInput${myindex}".Name.text()
+        mynewinput = syncOpenClosed((payload."DigitalInput${myindex}".Value.text()))
+        mynewcount = payload."DigitalInput${myindex}".Count.toInteger()
+        mychangeflag = 0
+        // log.debug "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Index ${myindex} ${state."newDigitalInput${myindex}"} ${state."newDigitalCount${myindex}"} "
+        if (mynewname != state."DigitalName${myindex}") { 
+            log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} mynewname ${mynewname} is not state.DigitalName${myindex} ${state."DigitalName${myindex}"}, syncing...."
+            state."DigitalName${myindex}" = mynewname
+        }
+        if (mynewinput != state."DigitalInput${myindex}") { 
+             log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} mynewinput ${mynewinput} is not state.DigitalInput${myindex} ${state."DigitalInput${myindex}"}, syncing...."
+             state."DigitalInput${myindex}" = mynewinput 
+             String myChildDevice = "${device.id}-DigitalInput${myindex}"
+             def child = getChildDevice(myChildDevice)
+             child.sendEvent(name: "contact", value: "${mynewinput}") 
+             mychangeflag = 1
+        }
+        if (mynewcount != state."DigitalCount${myindex}") { 
+             log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} mynewcount ${mynewcount} is not state.DigitalCount${myindex} ${state."DigitalCount${myindex}"}, syncing...."
+             state."DigitalCount${myindex}" = mynewcount 
+             state."DigitalCount${myindex}Uptime" = myuptime
+             if ( mychangeflag == 0 ) {
+                 
+                 String myChildDevice = "${device.id}-DigitalInput${myindex}"
+                 def child = getChildDevice(myChildDevice)
+                 if (state."DigitalInput${myindex}" == "closed") { 
+                     child.sendEvent(name: "contact", value: "open")
+                     state."DigitalInput${myindex}" = "open" 
+                     }
+                 else {
+                     child.sendEvent(name: "contact", value: "closed")
+                     state."DigitalInput${myindex}" = "closed" 
+                     }
+            }
+        }
+    } }
+
+    // Parse Analog Inputs
+    
+    if ( state.analogports > 0 ) {
+    for (int myindex = 1; myindex <= state.analogports; myindex++) {
+        mynewname = payload."AnalogInput${myindex}".Name.text()
+        mynewvalue = payload."AnalogInput${myindex}".Value.toInteger()
+        mynewmeasure = payload."AnalogInput${myindex}".Measure.text()
+        // log.debug "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Index ${myindex} ${state."newAnalogInput${myindex}"} ${state."newAnalogCount${myindex}"} "
+        if (mynewname != state."AnalogName${myindex}") { 
+            log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} mynewname ${mynewname} is not state.AnalogName${myindex} ${state."AnalogName${myindex}"}, syncing...."
+            state."AnalogName${myindex}" = mynewname
+        }
+        if (mynewvalue != state."AnalogValue${myindex}") { 
+            log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} mynewvalue ${mynewvalue} is not state.AnalogValue${myindex} ${state."AnalogValue${myindex}"}, syncing...."
+            state."AnalogValue${myindex}" = mynewvalue 
+            state."AnalogValue${myindex}Uptime" = myuptime
+        }
+        if (mynewmeasure != state."AnalogMeasure${myindex}") { 
+            log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} mynewmeasure ${mynewmeasure} is not state.AnalogMeasure${myindex} ${state."AnalogMeasure${myindex}"}, syncing...."
+            state."AnalogMeasure${myindex}" = mynewmeasure 
+        }
+    } }
+    
+}
+
+def syncOnOff(num) {
+    if (num == null) { log.info "Denkovi smartDEN Module ${denkovi_model}:${internal_ip} syncOnOff null found"; return }
+    if (num == "0") { return "off" }
+    if (num == "1") { return "on" }
+    log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} ${num} syncOnOff did not match"               
+}
+
+                 
+def syncOpenClosed(num) {
+    if (num == null) { log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} syncOpenClosed null found"; return }
+    if (num == "0") { return "open" }
+    if (num == "1") { return "closed" }
+    log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} ${num} syncOpenClosed did not match"               
+}                 
+                 
+def syncChild(sindex,spos) {
+    String myChildDevice = "${device.id}-Relay${sindex}"
+    def child = getChildDevice(myChildDevice)
+    child.sendEvent(name: "switch", value: "${spos}")
+}
+
+def initialize() {
+    log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Initialize..."
+    unschedule(pollDenkoviSwitch)
+    for (int myindex = 1; myindex <= 8; myindex++) { state."Relay${myindex}" = "off" }
+    switchAllOff()
+    setupControlSwitchChildren()
+    schedule("0/${polltimer} * * * * ? *", pollDenkoviModule)
+    //runEvery1Minute(pollDenkoviSwitch)
+}
+
+
+def installed() {
+    log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Installed....."
+    initialize()
+}
+
+def uninstalled() {
+    log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} Uninstalled....."
+    switchAllOff()
+    unschedule(pollDenkoviModule)
+    removeChildDevices(getChildDevices())
+}
+
+def removeChildDevice(sindex) {
+    String myChildDevice = "${device.id}-Relay${sindex}"
+    def child = getChildDevice(myChildDevice)
+    log.info "Denkovi smartDEN Module ${state.denkovi_model}:${internal_ip} removeChildDevice Device = ${myChildDevice} Child = ${child}"
+	deleteChildDevice(child.deviceNetworkId)
+}
+
+private removeChildDevices(delete) {
+	delete.each {deleteChildDevice(it.deviceNetworkId)}
+}
