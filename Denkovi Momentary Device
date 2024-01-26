@@ -1,0 +1,71 @@
+/**
+ *  Copyright 2020 Bloodtick Jones
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License. You may obtain a copy of the License at:
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
+ *  for the specific language governing permissions and limitations under the License.
+ *
+ *  Virtual Momentary Switch
+ *
+ *  Author: bloodtick
+ *  Date: 2020-08-24
+ */
+
+/*
+KMT Web Relay Child for Hubitat Elevation
+*/
+
+metadata {
+	definition (name: "Denkovi Momentary Device", namespace: "denkovismartden", author: "Hubitat", ocfDeviceType: "oic.d.switch") {
+		capability "Actuator"
+		capability "Switch"
+		capability "Refresh"
+		capability "Momentary"
+		capability "Sensor"
+		capability "Relay Switch"
+        attribute "count", "string"
+        attribute "lastchange", "string"
+	}
+}
+
+preferences {
+    input(name:"delay", type: "bool", title: "Delay Switching Off", defaultValue: false)
+}
+
+def installed() {
+    settings.delay = false
+}
+
+def parse(String description) {
+    log.debug description
+}
+
+def push() {
+    //settings.delay = true
+    parent?.componentOn(this.device)
+	sendEvent(name: "switch", value: "on", isStateChange: true, display: false)
+	//if (delay)
+         runIn(2, sendEventOff)
+    //else
+    //    sendEventOff()    
+	sendEvent(name: "momentary", value: "pushed", isStateChange: true)
+    log.info "${device.displayName} was pushed" + ((delay) ? " with delay" : "")
+}
+
+def on() {
+	push()
+}
+
+def off() {
+	push()
+}
+
+def sendEventOff() {
+    sendEvent(name: "switch", value: "off", isStateChange: true, display: false)
+    parent?.componentOff(this.device)
+}
